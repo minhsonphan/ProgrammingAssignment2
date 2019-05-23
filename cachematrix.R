@@ -1,22 +1,23 @@
-## Put comments here that give an overall description of what your
-## functions do
+## Description of makeCacheMatrix()
+## This function returns a list of functions that allow to calculate the inversed matrix and retrieve its value
+## Input: the matrix that should be inversed
+## Ouput: a list of functions
+##      setinversedmatrix()     : Calculates the inversed matrix and assigns it to the initial_matrix variable
+##      getinitalmatrix()       : Retrieves the initial_matrix variable
+##      getinversedmatrix()     : Retrieves the inversed_matrix variable
 
-## Write a short comment describing this function
-
-makeCacheMatrix <- function() {
-        #m est une variable locale à makeVector()
-        initial_matrix <- NULL
+makeCacheMatrix <- function(x=matrix()) {
+        ## initial_matrix contains the matrix that will be inversed
+        if(!is.null(x)){
+                initial_matrix <<- x        
+        }else{
+                initial_matrix <<- NULL
+        }
+        ## inversed_matrix contains the inversed matrix
         inversed_matrix <- NULL
         
-        setinitialmatrix <- function(matrix) {
-                if(!is.null(matrix)){
-                        initial_matrix <<- matrix        
-                }else{
-                        initial_matrix <<- NULL
-                        inversed_matrix <<- NULL
-                }
-                
-        }
+
+        ## calculates the inversed marix and assign it to inversed_matrix
         setinversedmatrix <- function(){
                 if(!is.null(initial_matrix)){
                         inversed_matrix<<-solve(initial_matrix)
@@ -24,39 +25,51 @@ makeCacheMatrix <- function() {
                         print("cannot calculate inverse matrix because initial matrix is NULL")
                 }
         } 
+
+        ## retrieves the value of initial_matrix
         getinitialmatrix <- function() initial_matrix
+
+        ## retrieves the value of inversed_matrix
         getinversedmatrix <- function() inversed_matrix
         
-        list(setinitialmatrix = setinitialmatrix, setinversedmatrix = setinversedmatrix,
+        ## return a list of functions to handle the initial and inversed matrix
+        list(setinversedmatrix = setinversedmatrix,
              getinitialmatrix = getinitialmatrix, getinversedmatrix = getinversedmatrix)
 }
 
 
-## Write a short comment describing this function
+## Description of cacheSolve()
+## This function checks whether the inversed matrix is cached.
+## If the inversed matrix is cached, the function returns it
+## If the inversed matrix is not cached, the function calculates the inversed matrix and returns it
+## Input: the makeCacheMatrix function
+## Ouput: the inversed matrix
 
 cacheSolve <- function(x) {
-        #m est une variable locale de cachemean()
+        ## retrieve the inversed_matrix value from the cache
         inversed_matrix <- x$getinversedmatrix()
-        if(!is.null(inversed_matrix)) {
-                message("getting cached data")
-                return(inversed_matrix)
-        }
-        initial_matrix <- x$getinitialmatrix()
-        inversed_matrix <- x$setinversedmatrix()
         
+        ## checks whether the cached inversed_matrix value is NULL or not
+        ## if not NULL then retrieves the inversed_matrix value in cache
+        ## otherwise calculates the inversed matrix and sets the value in cache
+        if(!is.null(inversed_matrix)) {
+                message("getting cached inversed matrix")
+                
+                ## retrieve the initial_matrix value from the cache
+                initial_matrix <- x$getinitialmatrix()
+                
+                ## checks whether the inversed matrix in cache matches the initial matrix
+                ## in this case initial matrix * inversed matrix should be equal to the unity matrix
+                if(all(inversed_matrix%*%initial_matrix==diag(nrow(inversed_matrix)))){
+                        return(inversed_matrix)        
+                }else{
+                ## if the test ik ko then the inversed matrix in cache does not match the initial matrix
+                ## the inversed matrix needs to be calculated
+                        return(x$setinversedmatrix())       
+                }
+        }else{
+                return(x$setinversedmatrix())
+        }
+
 }
 
-mymatrix<-matrix(1:4,nrow=2,ncol=2)
-mycacheMatrix<-makeCacheMatrix()
-mycacheMatrix$setinitialmatrix(mymatrix)
-mycacheMatrix$getinitialmatrix()
-mycacheMatrix$setinversedmatrix()
-mycacheMatrix$getinversedmatrix()
-cacheSolve(mycacheMatrix)
-
-mymatrix<-NULL
-mycacheMatrix<-makeCacheMatrix()
-mycacheMatrix$setinitialmatrix(mymatrix)
-mycacheMatrix$getinitialmatrix()
-mycacheMatrix$getinversedmatrix()
-cacheSolve(mycacheMatrix)
